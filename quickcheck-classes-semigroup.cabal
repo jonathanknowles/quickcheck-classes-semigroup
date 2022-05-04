@@ -36,6 +36,17 @@ library
       , QuickCheck
       , quickcheck-classes
 
+library quickcheck-classes-semigroup-internal
+    hs-source-dirs:
+        src/quickcheck-classes-semigroup-internal
+    exposed-modules:
+        Test.QuickCheck.Classes.Semigroup.Combinations
+    default-language:
+        Haskell2010
+    build-depends:
+        base >=4.7 && <5
+      , QuickCheck
+
 test-suite quickcheck-classes-semigroup-test
     main-is:
         Spec.hs
