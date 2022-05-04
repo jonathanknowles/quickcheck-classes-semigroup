@@ -262,6 +262,12 @@ gcdMonoidLaw_gcd_commonPrefix
 gcdMonoidLaw_gcd_commonPrefix (semigroupCombination2 -> (a, b)) = makeProperty
     "gcd a b == commonPrefix a b"
     (gcd a b == commonPrefix a b)
+        & cover 10
+            (gcd a b /= mempty)
+            "gcd a b /= mempty"
+        & cover 10
+            (gcd a b == mempty)
+            "gcd a b == mempty"
 
 gcdMonoidLaw_gcd_commonPrefix_mconcat
     :: (Eq a, GCDMonoid a) => a -> a -> a -> Property
