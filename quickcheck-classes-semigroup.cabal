@@ -35,6 +35,7 @@ library
       , monoid-subclasses
       , QuickCheck
       , quickcheck-classes
+      , quickcheck-classes-semigroup-internal
 
 library quickcheck-classes-semigroup-internal
     hs-source-dirs:

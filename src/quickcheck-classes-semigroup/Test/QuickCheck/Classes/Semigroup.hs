@@ -2,6 +2,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 {- HLINT ignore "Use camelCase" -}
 {- HLINT ignore "Redundant bracket" -}
 
@@ -90,6 +91,10 @@ import Test.QuickCheck
     )
 import Test.QuickCheck.Classes
     ( Laws (..) )
+import Test.QuickCheck.Classes.Semigroup.Combinations
+    ( SemigroupCombination2
+    , semigroupCombination2
+    )
 
 --------------------------------------------------------------------------------
 -- CancellativeGCDMonoid
@@ -189,14 +194,14 @@ commutativeLaws
     => Proxy a
     -> Laws
 commutativeLaws _ = Laws "Commutative"
-    [ makeLaw2 @a
-        "commutativeLaw_basic"
-        (commutativeLaw_basic)
+    [ ( "commutativeLaw_basic"
+      , (commutativeLaw_basic @a & property)
+      )
     ]
 
 commutativeLaw_basic
-    :: (Eq a, Commutative a) => a -> a -> Property
-commutativeLaw_basic a b = makeProperty
+    :: (Eq a, Commutative a) => SemigroupCombination2 a -> Property
+commutativeLaw_basic (semigroupCombination2 -> (a, b)) = makeProperty
     "a <> b == b <> a"
     (a <> b == b <> a)
 
@@ -226,9 +231,9 @@ gcdMonoidLaws
     => Proxy a
     -> Laws
 gcdMonoidLaws _ = Laws "GCDMonoid"
-    [ makeLaw2 @a
-        "gcdMonoidLaw_gcd_commonPrefix"
-        (gcdMonoidLaw_gcd_commonPrefix)
+    [ ( "gcdMonoidLaw_gcd_commonPrefix"
+      , (gcdMonoidLaw_gcd_commonPrefix @a & property)
+      )
     , makeLaw3 @a
         "gcdMonoidLaw_gcd_commonPrefix_mconcat"
         (gcdMonoidLaw_gcd_commonPrefix_mconcat)
@@ -253,8 +258,8 @@ gcdMonoidLaws _ = Laws "GCDMonoid"
     ]
 
 gcdMonoidLaw_gcd_commonPrefix
-    :: (Eq a, GCDMonoid a) => a -> a -> Property
-gcdMonoidLaw_gcd_commonPrefix a b = makeProperty
+    :: (Eq a, GCDMonoid a) => SemigroupCombination2 a -> Property
+gcdMonoidLaw_gcd_commonPrefix (semigroupCombination2 -> (a, b)) = makeProperty
     "gcd a b == commonPrefix a b"
     (gcd a b == commonPrefix a b)
 
