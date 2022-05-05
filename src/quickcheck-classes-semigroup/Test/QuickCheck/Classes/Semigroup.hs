@@ -667,6 +667,13 @@ overlappingGCDMonoidLaw_overlap_stripPrefixOverlap
     (semigroupTuple2 -> (a, b)) = makeProperty
         "overlap a b <> stripPrefixOverlap a b == b"
         (overlap a b <> stripPrefixOverlap a b == b)
+    & cover 10
+        (overlap a b /= mempty)
+        "overlap a b /= mempty"
+    & cover 10
+        (stripPrefixOverlap a b /= mempty)
+        "stripPrefixOverlap a b /= mempty"
+    & checkCoverage
 
 overlappingGCDMonoidLaw_overlap_stripSuffixOverlap
     :: (Eq a, OverlappingGCDMonoid a) => SemigroupTuple2 a -> Property
@@ -674,6 +681,13 @@ overlappingGCDMonoidLaw_overlap_stripSuffixOverlap
     (semigroupTuple2 -> (a, b)) = makeProperty
         "stripSuffixOverlap b a <> overlap a b == a"
         (stripSuffixOverlap b a <> overlap a b == a)
+    & cover 10
+        (overlap a b /= mempty)
+        "overlap a b /= mempty"
+    & cover 10
+        (stripSuffixOverlap b a /= mempty)
+        "stripSuffixOverlap b a /= mempty"
+    & checkCoverage
 
 overlappingGCDMonoidLaw_stripOverlap_overlap
     :: (Eq a, OverlappingGCDMonoid a) => SemigroupTuple2 a -> Property
@@ -681,6 +695,10 @@ overlappingGCDMonoidLaw_stripOverlap_overlap
     (semigroupTuple2 -> (a, b)) = makeProperty
         "stripOverlap a b & λ(_, x, _) -> x == overlap a b"
         (stripOverlap a b & \(_, x, _) -> x == overlap a b)
+    & cover 10
+        (overlap a b /= mempty)
+        "overlap a b /= mempty"
+    & checkCoverage
 
 overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap
     :: (Eq a, OverlappingGCDMonoid a) => SemigroupTuple2 a -> Property
@@ -688,6 +706,10 @@ overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap
     (semigroupTuple2 -> (a, b)) = makeProperty
         "stripOverlap a b & λ(_, _, x) -> x == stripPrefixOverlap a b"
         (stripOverlap a b & \(_, _, x) -> x == stripPrefixOverlap a b)
+    & cover 10
+        (stripPrefixOverlap a b /= mempty)
+        "stripPrefixOverlap a b /= mempty"
+    & checkCoverage
 
 overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap
     :: (Eq a, OverlappingGCDMonoid a) => SemigroupTuple2 a -> Property
@@ -695,6 +717,10 @@ overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap
     (semigroupTuple2 -> (a, b)) = makeProperty
         "stripOverlap a b & λ(x ,_, _) -> x == stripSuffixOverlap b a"
         (stripOverlap a b & \(x ,_, _) -> x == stripSuffixOverlap b a)
+    & cover 10
+        (stripSuffixOverlap b a /= mempty)
+        "stripSuffixOverlap b a /= mempty"
+    & checkCoverage
 
 --------------------------------------------------------------------------------
 -- Reductive

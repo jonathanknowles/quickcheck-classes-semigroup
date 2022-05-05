@@ -104,6 +104,13 @@ spec = do
         , rightGCDMonoidLaws
         , rightReductiveLaws
         ]
+    testLawsMany @(Map Int String)
+        [ leftGCDMonoidLaws
+        , leftReductiveLaws
+        , monoidNullLaws
+        , overlappingGCDMonoidLaws
+        , rightReductiveLaws
+        ]
     testLawsMany @(Map Int (Sum Natural))
         [ leftGCDMonoidLaws
         , leftReductiveLaws
