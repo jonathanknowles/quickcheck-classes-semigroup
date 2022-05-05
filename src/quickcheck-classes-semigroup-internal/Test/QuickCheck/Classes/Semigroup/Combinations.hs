@@ -75,18 +75,21 @@ arbitraryTuple2 = Tuple2
     <*> arbitraryCombinationOf3
     <*> arbitrary
 
+shrinkTuple2 :: Arbitrary a => Tuple2 a -> [Tuple2 a]
+shrinkTuple2 (Tuple2 c1 c2 t) = Tuple2 c1 c2 <$> shrink t
+
+instance Arbitrary a => Arbitrary (Tuple2 a) where
+    arbitrary = arbitraryTuple2
+    shrink = shrinkTuple2
+
 {-
 tuple2 :: Tuple2 a -> (a, a)
 tuple2 (Tuple2 s1 s2 t) = (selectFrom3 s1 t, selectFrom3 s2 t)
 
 
 
-shrinkTuple2 :: Arbitrary a => Tuple2 a -> [Tuple2 a]
-shrinkTuple2 (Tuple2 s1 s2 t) = Tuple2 s1 s2 <$> shrink t
 
-instance Arbitrary a => Arbitrary (Tuple2 a) where
-    arbitrary = arbitraryTuple2
-    shrink = shrinkTuple2
+
 -}
 --evalCombinationOf3 :: Semigroup a => (a, a, a) -> CombinationOf3 a -> a
 --evalCombinationOf3 tuple (CombinationOf3 selectors) =
