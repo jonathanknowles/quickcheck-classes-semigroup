@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns #-}
 {- HLINT ignore "Redundant bracket" -}
 {- HLINT ignore "Use uncurry" -}
@@ -9,18 +10,92 @@
 
 module Test.QuickCheck.Classes.Semigroup.Combinations where
 
-import Data.Semigroup.Foldable
-    ( Foldable1 (..) )
+import Control.Monad
+    ( replicateM )
+import Data.Function
+    ( (&) )
 import Data.List
     ( intersperse )
+import Data.Maybe
+    ( mapMaybe )
+import Data.Semigroup.Foldable
+    ( Foldable1 (..) )
+import Data.List.NonEmpty
+    ( NonEmpty (..) )
 import Test.QuickCheck
-    ( Arbitrary (..), Gen, arbitraryBoundedEnum, oneof )
+    ( Arbitrary (..), Gen, arbitraryBoundedEnum, choose, elements, oneof, listOf, shrinkList )
 import Text.Show.Pretty
     ( ppShow )
 
 import qualified Data.Foldable as F
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Semigroup.Foldable as F1
 
+data SelectFrom3
+    = SelectAFrom3
+    | SelectBFrom3
+    | SelectCFrom3
+    deriving (Bounded, Enum, Eq, Ord, Show)
+
+selectFrom3 :: (s, s, s) -> SelectFrom3 -> s
+selectFrom3 (a, b, c) = \case
+    SelectAFrom3 -> a
+    SelectBFrom3 -> b
+    SelectCFrom3 -> c
+
+arbitrarySelectFrom3 :: Gen SelectFrom3
+arbitrarySelectFrom3 = arbitraryBoundedEnum
+
+newtype CombinationOf3 = CombinationOf3 (NonEmpty SelectFrom3)
+    deriving (Eq, Ord, Show)
+
+combinationOf3 :: (s, s, s) -> CombinationOf3 -> NonEmpty s
+combinationOf3 tuple (CombinationOf3 selectors) =
+    selectFrom3 tuple <$> selectors
+
+arbitraryCombinationOf3 :: Gen CombinationOf3
+arbitraryCombinationOf3 = do
+    lengthMinusOne <- choose (0, 2)
+    first <- arbitrarySelectFrom3
+    rest <- replicateM lengthMinusOne arbitrarySelectFrom3
+    pure $ CombinationOf3 $ first :| rest
+
+data Tuple2 s = Tuple2 CombinationOf3 CombinationOf3 (s, s, s)
+    deriving (Eq, Ord, Show)
+
+tuple2 :: Semigroup s => Tuple2 s -> (s, s)
+tuple2 (Tuple2 c1 c2 t) =
+    ( F1.fold1 $ combinationOf3 t c1
+    , F1.fold1 $ combinationOf3 t c2
+    )
+
+arbitraryTuple2 :: Arbitrary a => Gen (Tuple2 a)
+arbitraryTuple2 = Tuple2
+    <$> arbitraryCombinationOf3
+    <*> arbitraryCombinationOf3
+    <*> arbitrary
+
+{-
+tuple2 :: Tuple2 a -> (a, a)
+tuple2 (Tuple2 s1 s2 t) = (selectFrom3 s1 t, selectFrom3 s2 t)
+
+
+
+shrinkTuple2 :: Arbitrary a => Tuple2 a -> [Tuple2 a]
+shrinkTuple2 (Tuple2 s1 s2 t) = Tuple2 s1 s2 <$> shrink t
+
+instance Arbitrary a => Arbitrary (Tuple2 a) where
+    arbitrary = arbitraryTuple2
+    shrink = shrinkTuple2
+-}
+--evalCombinationOf3 :: Semigroup a => (a, a, a) -> CombinationOf3 a -> a
+--evalCombinationOf3 tuple (CombinationOf3 selectors) =
+--    F1.fold1 $ ($ tuple) <$> selectors
+{-
+showCombinationOf3 :: (Semigroup a, Show a) => CombinationOf3 a -> String
+showCombinationOf3 (CombinationOf3 tuple selectors) =
+    F1.intercalateMap1 " <> " show $ ($ tuple <$> selectors)
+-}
 data Expr1 a
     = Expr1Const a
     deriving stock (Foldable, Functor, Traversable)
@@ -227,3 +302,14 @@ instance Arbitrary s => Arbitrary (SemigroupTuple2 s) where
 instance Arbitrary s => Arbitrary (SemigroupTuple3 s) where
     arbitrary = arbitrarySemigroupTuple3
     shrink = shrinkSemigroupTuple3
+
+
+--------------------------------------------------------------------------------
+-- Generating and shrinking of non-empty lists
+--------------------------------------------------------------------------------
+
+arbitraryNonEmpty :: Gen a -> Gen (NonEmpty a)
+arbitraryNonEmpty genA = (:|) <$> genA <*> listOf genA
+
+shrinkNonEmpty :: (a -> [a]) -> (NonEmpty a -> [NonEmpty a])
+shrinkNonEmpty shrinkA = mapMaybe NE.nonEmpty . shrinkList shrinkA . NE.toList
