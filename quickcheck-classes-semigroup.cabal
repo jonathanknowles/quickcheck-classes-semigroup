@@ -48,6 +48,7 @@ library quickcheck-classes-semigroup-internal
         base >=4.7 && <5
       , QuickCheck
       , pretty-show
+      , semigroupoids
 
 test-suite quickcheck-classes-semigroup-test
     main-is:

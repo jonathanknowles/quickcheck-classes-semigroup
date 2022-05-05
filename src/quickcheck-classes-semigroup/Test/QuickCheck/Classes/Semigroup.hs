@@ -4,6 +4,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns #-}
 {- HLINT ignore "Use camelCase" -}
+{- HLINT ignore "Use infix" -}
 {- HLINT ignore "Redundant bracket" -}
 
 -- |
@@ -94,6 +95,8 @@ import Test.QuickCheck.Classes
 import Test.QuickCheck.Classes.Semigroup.Combinations
     ( SemigroupTuple2
     , semigroupTuple2
+    , SemigroupTuple3
+    , semigroupTuple3
     )
 
 --------------------------------------------------------------------------------
@@ -486,6 +489,9 @@ leftReductiveLaws _ = Laws "LeftReductive"
     , makeLaw2 @a
         "leftReductiveLaw_stripPrefix_mappend"
         (leftReductiveLaw_stripPrefix_mappend)
+    , ( "leftReductiveLaw_isPrefixOf_isPrefixOf"
+      , (leftReductiveLaw_isPrefixOf_isPrefixOf @a & property)
+      )
     ]
 
 leftReductiveLaw_isPrefix_mappend
@@ -511,6 +517,26 @@ leftReductiveLaw_stripPrefix_mappend
 leftReductiveLaw_stripPrefix_mappend a b = makeProperty
     "fmap (a <>) (stripPrefix a (a <> b)) == Just (a <> b)"
     (fmap (a <>) (stripPrefix a (a <> b)) == Just (a <> b))
+
+leftReductiveLaw_isPrefixOf_isPrefixOf
+    :: (Eq a, LeftReductive a) => SemigroupTuple3 a -> Property
+leftReductiveLaw_isPrefixOf_isPrefixOf (semigroupTuple3 -> (a, b, c)) =
+    makeProperty
+        "not (isPrefixOf a b && isPrefixOf b c) || isPrefixOf a c"
+        (not (isPrefixOf a b && isPrefixOf b c) || isPrefixOf a c)
+    & cover 2
+        (isPrefixOf a b && isPrefixOf b c)
+        "isPrefixOf a b && isPrefixOf b c"
+    & cover 2
+        (not (isPrefixOf a b) && isPrefixOf b c)
+        "not (isPrefixOf a b) && isPrefixOf b c"
+    & cover 2
+        (isPrefixOf a b && not (isPrefixOf b c))
+        "isPrefixOf a b && not (isPrefixOf b c)"
+    & cover 2
+        (not (isPrefixOf a b) && not (isPrefixOf b c))
+        "not (isPrefixOf a b) && not (isPrefixOf b c)"
+    & checkCoverage
 
 --------------------------------------------------------------------------------
 -- MonoidNull
