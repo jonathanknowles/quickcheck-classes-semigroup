@@ -92,8 +92,8 @@ import Test.QuickCheck
 import Test.QuickCheck.Classes
     ( Laws (..) )
 import Test.QuickCheck.Classes.Semigroup.Combinations
-    ( SemigroupCombination2
-    , semigroupCombination2
+    ( SemigroupTuple2
+    , semigroupTuple2
     )
 
 --------------------------------------------------------------------------------
@@ -200,8 +200,8 @@ commutativeLaws _ = Laws "Commutative"
     ]
 
 commutativeLaw_basic
-    :: (Eq a, Commutative a) => SemigroupCombination2 a -> Property
-commutativeLaw_basic (semigroupCombination2 -> (a, b)) = makeProperty
+    :: (Eq a, Commutative a) => SemigroupTuple2 a -> Property
+commutativeLaw_basic (semigroupTuple2 -> (a, b)) = makeProperty
     "a <> b == b <> a"
     (a <> b == b <> a)
 
@@ -258,16 +258,17 @@ gcdMonoidLaws _ = Laws "GCDMonoid"
     ]
 
 gcdMonoidLaw_gcd_commonPrefix
-    :: (Eq a, GCDMonoid a) => SemigroupCombination2 a -> Property
-gcdMonoidLaw_gcd_commonPrefix (semigroupCombination2 -> (a, b)) = makeProperty
+    :: (Eq a, GCDMonoid a) => SemigroupTuple2 a -> Property
+gcdMonoidLaw_gcd_commonPrefix (semigroupTuple2 -> (a, b)) = makeProperty
     "gcd a b == commonPrefix a b"
     (gcd a b == commonPrefix a b)
         & cover 10
             (gcd a b /= mempty)
             "gcd a b /= mempty"
-        & cover 10
+        & cover 1
             (gcd a b == mempty)
             "gcd a b == mempty"
+        & checkCoverage
 
 gcdMonoidLaw_gcd_commonPrefix_mconcat
     :: (Eq a, GCDMonoid a) => a -> a -> a -> Property
@@ -628,99 +629,72 @@ overlappingGCDMonoidLaws
     => Proxy a
     -> Laws
 overlappingGCDMonoidLaws _ = Laws "OverlappingGCDMonoid"
-    [ makeLaw2 @a
-        "overlappingGCDMonoidLaw_overlap_stripPrefixOverlap"
-        (overlappingGCDMonoidLaw_overlap_stripPrefixOverlap)
-    , makeLaw3 @a
-        "overlappingGCDMonoidLaw_overlap_stripPrefixOverlap_mconcat"
-        (overlappingGCDMonoidLaw_overlap_stripPrefixOverlap_mconcat)
-    , makeLaw2 @a
-        "overlappingGCDMonoidLaw_overlap_stripSuffixOverlap"
-        (overlappingGCDMonoidLaw_overlap_stripSuffixOverlap)
-    , makeLaw3 @a
-        "overlappingGCDMonoidLaw_overlap_stripSuffixOverlap_mconcat"
-        (overlappingGCDMonoidLaw_overlap_stripSuffixOverlap_mconcat)
-    , makeLaw2 @a
-        "overlappingGCDMonoidLaw_stripOverlap_overlap"
-        (overlappingGCDMonoidLaw_stripOverlap_overlap)
-    , makeLaw3 @a
-        "overlappingGCDMonoidLaw_stripOverlap_overlap_mconcat"
-        (overlappingGCDMonoidLaw_stripOverlap_overlap_mconcat)
-    , makeLaw2 @a
-        "overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap"
-        (overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap)
-    , makeLaw3 @a
-        "overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap_mconcat"
-        (overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap_mconcat)
-    , makeLaw2 @a
-        "overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap"
-        (overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap)
-    , makeLaw3 @a
-        "overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap_mconcat"
-        (overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap_mconcat)
+    [ ( "overlappingGCDMonoidLaw_overlap_stripPrefixOverlap"
+      , (overlappingGCDMonoidLaw_overlap_stripPrefixOverlap @a & property)
+      )
+    --, makeLaw3 @a
+    --    "overlappingGCDMonoidLaw_overlap_stripPrefixOverlap_mconcat"
+    --    (overlappingGCDMonoidLaw_overlap_stripPrefixOverlap_mconcat)
+    , ( "overlappingGCDMonoidLaw_overlap_stripSuffixOverlap"
+      , (overlappingGCDMonoidLaw_overlap_stripSuffixOverlap @a & property)
+      )
+    --, makeLaw3 @a
+    --    "overlappingGCDMonoidLaw_overlap_stripSuffixOverlap_mconcat"
+    --    (overlappingGCDMonoidLaw_overlap_stripSuffixOverlap_mconcat)
+    , ( "overlappingGCDMonoidLaw_stripOverlap_overlap"
+      , (overlappingGCDMonoidLaw_stripOverlap_overlap @a & property)
+      )
+    --, makeLaw3 @a
+    --    "overlappingGCDMonoidLaw_stripOverlap_overlap_mconcat"
+    --    (overlappingGCDMonoidLaw_stripOverlap_overlap_mconcat)
+    , ( "overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap"
+      , (overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap @a & property)
+      )
+    --, makeLaw3 @a
+    --    "overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap_mconcat"
+    --    (overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap_mconcat)
+    , ( "overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap"
+      , (overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap @a & property)
+      )
+    --, makeLaw3 @a
+    --    "overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap_mconcat"
+    --    (overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap_mconcat)
     ]
 
 overlappingGCDMonoidLaw_overlap_stripPrefixOverlap
-    :: (Eq a, OverlappingGCDMonoid a) => a -> a -> Property
-overlappingGCDMonoidLaw_overlap_stripPrefixOverlap a b = makeProperty
-    "overlap a b <> stripPrefixOverlap a b == b"
-    (overlap a b <> stripPrefixOverlap a b == b)
-
-overlappingGCDMonoidLaw_overlap_stripPrefixOverlap_mconcat
-    :: (Eq a, OverlappingGCDMonoid a) => a -> a -> a -> Property
-overlappingGCDMonoidLaw_overlap_stripPrefixOverlap_mconcat a b c = makeProperty
-    "overlap (a<>b) (a<>c) <> stripPrefixOverlap (a<>b) (a<>c) == a<>c"
-    (overlap (a<>b) (a<>c) <> stripPrefixOverlap (a<>b) (a<>c) == a<>c)
+    :: (Eq a, OverlappingGCDMonoid a) => SemigroupTuple2 a -> Property
+overlappingGCDMonoidLaw_overlap_stripPrefixOverlap
+    (semigroupTuple2 -> (a, b)) = makeProperty
+        "overlap a b <> stripPrefixOverlap a b == b"
+        (overlap a b <> stripPrefixOverlap a b == b)
 
 overlappingGCDMonoidLaw_overlap_stripSuffixOverlap
-    :: (Eq a, OverlappingGCDMonoid a) => a -> a -> Property
-overlappingGCDMonoidLaw_overlap_stripSuffixOverlap a b = makeProperty
-    "stripSuffixOverlap b a <> overlap a b == a"
-    (stripSuffixOverlap b a <> overlap a b == a)
-
-overlappingGCDMonoidLaw_overlap_stripSuffixOverlap_mconcat
-    :: (Eq a, OverlappingGCDMonoid a) => a -> a -> a -> Property
-overlappingGCDMonoidLaw_overlap_stripSuffixOverlap_mconcat a b c = makeProperty
-    "stripSuffixOverlap (b<>c) (a<>c) <> overlap (a<>c) (b<>c) == a<>c"
-    (stripSuffixOverlap (b<>c) (a<>c) <> overlap (a<>c) (b<>c) == a<>c)
+    :: (Eq a, OverlappingGCDMonoid a) => SemigroupTuple2 a -> Property
+overlappingGCDMonoidLaw_overlap_stripSuffixOverlap
+    (semigroupTuple2 -> (a, b)) = makeProperty
+        "stripSuffixOverlap b a <> overlap a b == a"
+        (stripSuffixOverlap b a <> overlap a b == a)
 
 overlappingGCDMonoidLaw_stripOverlap_overlap
-    :: (Eq a, OverlappingGCDMonoid a) => a -> a -> Property
-overlappingGCDMonoidLaw_stripOverlap_overlap a b = makeProperty
-    "stripOverlap a b & λ(_,x,_) -> x == overlap a b"
-    (stripOverlap a b & \(_,x,_) -> x == overlap a b)
-
-overlappingGCDMonoidLaw_stripOverlap_overlap_mconcat
-    :: (Eq a, OverlappingGCDMonoid a) => a -> a -> a -> Property
-overlappingGCDMonoidLaw_stripOverlap_overlap_mconcat a b c = makeProperty
-    "stripOverlap (a<>b) (a<>c) & λ(_,x,_) -> x == overlap (a<>b) (a<>c)"
-    (stripOverlap (a<>b) (a<>c) & \(_,x,_) -> x == overlap (a<>b) (a<>c))
+    :: (Eq a, OverlappingGCDMonoid a) => SemigroupTuple2 a -> Property
+overlappingGCDMonoidLaw_stripOverlap_overlap
+    (semigroupTuple2 -> (a, b)) = makeProperty
+        "stripOverlap a b & λ(_, x, _) -> x == overlap a b"
+        (stripOverlap a b & \(_, x, _) -> x == overlap a b)
 
 overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap
-    :: (Eq a, OverlappingGCDMonoid a) => a -> a -> Property
-overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap a b = makeProperty
-    "stripOverlap a b & λ(_,_,x) -> x == stripPrefixOverlap a b"
-    (stripOverlap a b & \(_,_,x) -> x == stripPrefixOverlap a b)
-
-overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap_mconcat
-    :: (Eq a, OverlappingGCDMonoid a) => a -> a -> a -> Property
-overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap_mconcat a b c =
-    makeProperty
-    "stripOverlap (a<>b) (a<>c) & λ(_,_,x) -> x == stripPrefixOverlap (a<>b) (a<>c)"
-    (stripOverlap (a<>b) (a<>c) & \(_,_,x) -> x == stripPrefixOverlap (a<>b) (a<>c))
+    :: (Eq a, OverlappingGCDMonoid a) => SemigroupTuple2 a -> Property
+overlappingGCDMonoidLaw_stripOverlap_stripPrefixOverlap
+    (semigroupTuple2 -> (a, b)) = makeProperty
+        "stripOverlap a b & λ(_, _, x) -> x == stripPrefixOverlap a b"
+        (stripOverlap a b & \(_, _, x) -> x == stripPrefixOverlap a b)
 
 overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap
-    :: (Eq a, OverlappingGCDMonoid a) => a -> a -> Property
-overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap a b = makeProperty
-    "stripOverlap a b & λ(x,_,_) -> x == stripSuffixOverlap b a"
-    (stripOverlap a b & \(x,_,_) -> x == stripSuffixOverlap b a)
-
-overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap_mconcat
-    :: (Eq a, OverlappingGCDMonoid a) => a -> a -> a -> Property
-overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap_mconcat a b c =
-    makeProperty
-    "stripOverlap (a<>c) (b<>c) & λ(x,_,_) -> x == stripSuffixOverlap (b<>c) (a<>c)"
-    (stripOverlap (a<>c) (b<>c) & \(x,_,_) -> x == stripSuffixOverlap (b<>c) (a<>c))
+    :: (Eq a, OverlappingGCDMonoid a) => SemigroupTuple2 a -> Property
+overlappingGCDMonoidLaw_stripOverlap_stripSuffixOverlap
+    (semigroupTuple2 -> (a, b)) = makeProperty
+        "stripOverlap a b & λ(x ,_, _) -> x == stripSuffixOverlap b a"
+        (stripOverlap a b & \(x ,_, _) -> x == stripSuffixOverlap b a)
 
 --------------------------------------------------------------------------------
 -- Reductive
@@ -1053,8 +1027,7 @@ makeProperty propertyDescription t =
     property t & counterexample counterexampleText
   where
     counterexampleText = unlines
-        [ mempty
-        , "Property not satisfied:"
+        [ "Property not satisfied:"
         , propertyDescription
             & fmap replaceSpecialChars
         ]
