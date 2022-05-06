@@ -11,10 +11,10 @@ module Test.QuickCheck.Classes.SemigroupSpec where
 
 import Data.ByteString.Lazy
     ( ByteString )
-import Data.Monoid
-    ( Product (..), Sum (..) )
 import Data.Map.Strict
     ( Map )
+import Data.Monoid
+    ( Product (..), Sum (..) )
 import Data.Set
     ( Set )
 import Data.Text

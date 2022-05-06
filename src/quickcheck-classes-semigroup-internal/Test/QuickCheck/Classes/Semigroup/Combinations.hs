@@ -16,14 +16,25 @@ import Data.Function
     ( (&) )
 import Data.List
     ( intersperse )
+import Data.List.NonEmpty
+    ( NonEmpty (..) )
 import Data.Maybe
     ( mapMaybe )
 import Data.Semigroup.Foldable
     ( Foldable1 (..) )
-import Data.List.NonEmpty
-    ( NonEmpty (..) )
 import Test.QuickCheck
-    ( Arbitrary (..), Gen, arbitraryBoundedEnum, choose, elements, oneof, listOf, shrinkList )
+    ( Arbitrary (..)
+    , Gen
+    , arbitraryBoundedEnum
+    , choose
+    , elements
+    , listOf
+    , oneof
+    , shrinkList
+    , shuffle
+    , sublistOf
+    , suchThatMap
+    )
 import Text.Show.Pretty
     ( ppShow )
 
@@ -54,11 +65,13 @@ combinationOf3 tuple (CombinationOf3 selectors) =
     selectFrom3 tuple <$> selectors
 
 arbitraryCombinationOf3 :: Gen CombinationOf3
-arbitraryCombinationOf3 = do
-    lengthMinusOne <- choose (0, 2)
-    first <- arbitrarySelectFrom3
-    rest <- replicateM lengthMinusOne arbitrarySelectFrom3
-    pure $ CombinationOf3 $ first :| rest
+arbitraryCombinationOf3 =
+    CombinationOf3 <$> arbitrarySelectFrom3List `suchThatMap` NE.nonEmpty
+  where
+    arbitrarySelectFrom3List :: Gen [SelectFrom3]
+    arbitrarySelectFrom3List = do
+        itemCount <- choose (1, 3)
+        take itemCount <$> shuffle universe
 
 data Tuple2 s = Tuple2 CombinationOf3 CombinationOf3 (s, s, s)
     deriving (Eq, Ord, Show)
@@ -316,3 +329,10 @@ arbitraryNonEmpty genA = (:|) <$> genA <*> listOf genA
 
 shrinkNonEmpty :: (a -> [a]) -> (NonEmpty a -> [NonEmpty a])
 shrinkNonEmpty shrinkA = mapMaybe NE.nonEmpty . shrinkList shrinkA . NE.toList
+
+--------------------------------------------------------------------------------
+-- Utilities
+--------------------------------------------------------------------------------
+
+universe :: (Bounded a, Enum a) => [a]
+universe = [minBound .. maxBound]

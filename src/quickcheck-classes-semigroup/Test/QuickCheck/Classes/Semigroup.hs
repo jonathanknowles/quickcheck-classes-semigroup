@@ -93,11 +93,7 @@ import Test.QuickCheck
 import Test.QuickCheck.Classes
     ( Laws (..) )
 import Test.QuickCheck.Classes.Semigroup.Combinations
-    ( SemigroupTuple2
-    , semigroupTuple2
-    , SemigroupTuple3
-    , semigroupTuple3
-    )
+    ( SemigroupTuple2, SemigroupTuple3, semigroupTuple2, semigroupTuple3 )
 
 --------------------------------------------------------------------------------
 -- CancellativeGCDMonoid
