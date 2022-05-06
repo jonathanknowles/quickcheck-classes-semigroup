@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -76,10 +78,47 @@ arbitraryCombinationOf3 =
 data Tuple2 s = Tuple2 CombinationOf3 CombinationOf3 (s, s, s)
     deriving (Eq, Ord, Show)
 
+data Tuple3 s = Tuple3 CombinationOf3 CombinationOf3 CombinationOf3 (s, s, s)
+    deriving (Eq, Ord, Show)
+
+newtype Structure a = Structure {unStructure :: a}
+    deriving stock Eq
+
+newtype Counterexample a = Counterexample {unCounterexample :: a}
+    deriving stock Eq
+
+instance (Show s, Semigroup s) => Show (Structure (Tuple2 s)) where
+    show (Structure t@(Tuple2 c1 c2 (a, b, c))) = unlines
+        [ mempty, "a:", showWrap a
+        , mempty, "b:", showWrap b
+        ]
+      where
+        (a, b) = tuple2 t
+
+instance (Show s, Semigroup s) => Show (Counterexample (Tuple2 s)) where
+    show (tuple2 . unCounterexample -> (a, b)) = unlines
+        [ mempty, "a:", showWrap a
+        , mempty, "b:", showWrap b
+        ]
+
+instance (Show s, Semigroup s) => Show (Counterexample (Tuple3 s)) where
+    show (tuple3 . unCounterexample -> (a, b, c)) = unlines
+        [ mempty, "a:", showWrap a
+        , mempty, "b:", showWrap b
+        , mempty, "c:", showWrap c
+        ]
+
 tuple2 :: Semigroup s => Tuple2 s -> (s, s)
 tuple2 (Tuple2 c1 c2 t) =
     ( F1.fold1 $ combinationOf3 t c1
     , F1.fold1 $ combinationOf3 t c2
+    )
+
+tuple3 :: Semigroup s => Tuple3 s -> (s, s, s)
+tuple3 (Tuple3 c1 c2 c3 t) =
+    ( F1.fold1 $ combinationOf3 t c1
+    , F1.fold1 $ combinationOf3 t c2
+    , F1.fold1 $ combinationOf3 t c3
     )
 
 arbitraryTuple2 :: Arbitrary a => Gen (Tuple2 a)
@@ -88,12 +127,26 @@ arbitraryTuple2 = Tuple2
     <*> arbitraryCombinationOf3
     <*> arbitrary
 
+arbitraryTuple3 :: Arbitrary a => Gen (Tuple3 a)
+arbitraryTuple3 = Tuple3
+    <$> arbitraryCombinationOf3
+    <*> arbitraryCombinationOf3
+    <*> arbitraryCombinationOf3
+    <*> arbitrary
+
 shrinkTuple2 :: Arbitrary a => Tuple2 a -> [Tuple2 a]
 shrinkTuple2 (Tuple2 c1 c2 t) = Tuple2 c1 c2 <$> shrink t
+
+shrinkTuple3 :: Arbitrary a => Tuple3 a -> [Tuple3 a]
+shrinkTuple3 (Tuple3 c1 c2 c3 t) = Tuple3 c1 c2 c3 <$> shrink t
 
 instance Arbitrary a => Arbitrary (Tuple2 a) where
     arbitrary = arbitraryTuple2
     shrink = shrinkTuple2
+
+instance Arbitrary a => Arbitrary (Tuple3 a) where
+    arbitrary = arbitraryTuple3
+    shrink = shrinkTuple3
 
 {-
 tuple2 :: Tuple2 a -> (a, a)

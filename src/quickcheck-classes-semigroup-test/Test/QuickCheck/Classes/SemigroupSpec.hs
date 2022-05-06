@@ -11,8 +11,6 @@ module Test.QuickCheck.Classes.SemigroupSpec where
 
 import Data.ByteString.Lazy
     ( ByteString )
-import Data.Map.Strict
-    ( Map )
 import Data.Monoid
     ( Product (..), Sum (..) )
 import Data.Set
@@ -102,20 +100,6 @@ spec = do
         , overlappingGCDMonoidLaws
         , reductiveLaws
         , rightGCDMonoidLaws
-        , rightReductiveLaws
-        ]
-    testLawsMany @(Map Int String)
-        [ leftGCDMonoidLaws
-        , leftReductiveLaws
-        , monoidNullLaws
-        , overlappingGCDMonoidLaws
-        , rightReductiveLaws
-        ]
-    testLawsMany @(Map Int (Sum Natural))
-        [ leftGCDMonoidLaws
-        , leftReductiveLaws
-        , monoidNullLaws
-        , overlappingGCDMonoidLaws
         , rightReductiveLaws
         ]
     testLawsMany @(Product Int)
