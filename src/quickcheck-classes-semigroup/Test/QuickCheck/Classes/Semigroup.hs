@@ -62,6 +62,8 @@ import Data.Function
     ( (&) )
 import Data.Group
     ( Group (..) )
+import Data.List
+    ( tails )
 import Data.Maybe
     ( isJust )
 import Data.Monoid.Cancellative
@@ -179,6 +181,9 @@ cancellativeGCDMonoidLaw_prefix a b c =
     makeProperty
         "gcd (a <> b) (a <> c) == a <> gcd b c"
         (gcd (a <> b) (a <> c) == a <> gcd b c)
+    & cover 1
+        (a /= mempty && gcd b c /= mempty && a /= gcd b c)
+        "a /= mempty && gcd b c /= mempty && a /= gcd b c"
 
 cancellativeGCDMonoidLaw_suffix
     :: (Eq a, Cancellative a, GCDMonoid a) => a -> a -> a -> Property
@@ -186,6 +191,9 @@ cancellativeGCDMonoidLaw_suffix a b c =
     makeProperty
         "gcd (a <> c) (b <> c) == gcd a b <> c"
         (gcd (a <> c) (b <> c) == gcd a b <> c)
+    & cover 1
+        (c /= mempty && gcd a b /= mempty && c /= gcd a b)
+        "c /= mempty && gcd a b /= mempty && c /= gcd a b"
 
 --------------------------------------------------------------------------------
 -- Commutative
@@ -213,6 +221,9 @@ commutativeLaw_basic a b =
     makeProperty
         "a <> b == b <> a"
         (a <> b == b <> a)
+    & cover 1
+        ((a /= b) && (a <> b /= a) && (b <> a /= b))
+        "(a /= b) && (a <> b /= a) && (b <> a /= b)"
 
 --------------------------------------------------------------------------------
 -- GCDMonoid
@@ -1005,8 +1016,8 @@ makeProperty1
     => (a -> t)
     -> (Tuple1 a -> Property)
 makeProperty1 p (evalTuple1 -> a)
-    = cover 0 (a == mempty) "a == mempty"
-    $ cover 0 (a /= mempty) "a /= mempty"
+    = cover 1 (a == mempty) "a == mempty"
+    $ cover 1 (a /= mempty) "a /= mempty"
     $ property $ p a
 
 makeProperty2
@@ -1014,8 +1025,9 @@ makeProperty2
     => (a -> a -> t)
     -> (Tuple2 a -> Property)
 makeProperty2 p (evalTuple2 -> (a, b))
-    = cover 0 (a == b) "a == b"
-    $ cover 0 (a /= b) "a /= b"
+    = cover 1
+        (allNonEq [a, b] && allCoNonNull [a, b])
+        "allNonEq [a, b] && allCoNonNull [a, b]"
     $ property $ p a b
 
 makeProperty3
@@ -1023,7 +1035,24 @@ makeProperty3
     => (a -> a -> a -> t)
     -> (Tuple3 a -> Property)
 makeProperty3 p (evalTuple3 -> (a, b, c))
-    = cover 0
-        (a /= b && b /= c && c /= a)
-        "a /= b && b /= c && c /= a"
+    = cover 1
+        (allNonEq [a, b, c] && allCoNonNull [a, b, c])
+        "allNonEq [a, b, c] && allCoNonNull [a, b, c]"
     $ property $ p a b c
+
+allNonEq :: Eq a => [a] -> Bool
+allNonEq = allPairsSatisfy (/=)
+
+allCoNonNull :: (Eq a, Semigroup a) => [a] -> Bool
+allCoNonNull = allPairsSatisfy coNonNull
+
+allPairsSatisfy :: (a -> a -> Bool) -> [a] -> Bool
+allPairsSatisfy condition as = all (uncurry condition) (allPairs as)
+
+allPairs :: [a] -> [(a, a)]
+allPairs zs = [(x, y) | (x : ys) <- tails zs, y <- ys]
+
+coNonNull :: (Eq a, Semigroup a) => a -> a -> Bool
+coNonNull a b = (&&)
+    (a /= a <> b)
+    (b /= b <> a)
