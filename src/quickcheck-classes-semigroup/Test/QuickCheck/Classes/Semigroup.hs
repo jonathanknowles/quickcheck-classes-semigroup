@@ -62,8 +62,6 @@ import Data.Function
     ( (&) )
 import Data.Group
     ( Group (..) )
-import Data.List
-    ( tails )
 import Data.Maybe
     ( isJust )
 import Data.Monoid.Cancellative
@@ -85,6 +83,8 @@ import Data.Semigroup.Cancellative
     , RightCancellative
     , RightReductive (..)
     )
+import Data.Semigroup.Eq
+    ( allUnique, canVerifyAllNonNull )
 import Test.QuickCheck
     ( Arbitrary (..)
     , NonNegative (..)
@@ -1026,8 +1026,14 @@ makeProperty2
     -> (Tuple2 a -> Property)
 makeProperty2 p (evalTuple2 -> (a, b))
     = cover 1
-        (allNonEq [a, b] && allCoNonNull [a, b])
-        "allNonEq [a, b] && allCoNonNull [a, b]"
+        (allUnique [a, b])
+        "allUnique [a, b]"
+    $ cover 1
+        (canVerifyAllNonNull [a, b])
+        "canVerifyAllNonNull [a, b]"
+    $ cover 1
+        (allUnique [a, b] && canVerifyAllNonNull [a, b])
+        "allUnique [a, b] && canVerifyAllNonNull [a, b]"
     $ property $ p a b
 
 makeProperty3
@@ -1036,23 +1042,12 @@ makeProperty3
     -> (Tuple3 a -> Property)
 makeProperty3 p (evalTuple3 -> (a, b, c))
     = cover 1
-        (allNonEq [a, b, c] && allCoNonNull [a, b, c])
-        "allNonEq [a, b, c] && allCoNonNull [a, b, c]"
+        (allUnique [a, b, c])
+        "allUnique [a, b, c]"
+    $ cover 1
+        (canVerifyAllNonNull [a, b, c])
+        "canVerifyAllNonNull [a, b, c]"
+    $ cover 1
+        (allUnique [a, b, c] && canVerifyAllNonNull [a, b, c])
+        "allUnique [a, b, c] && canVerifyAllNonNull [a, b, c]"
     $ property $ p a b c
-
-allNonEq :: Eq a => [a] -> Bool
-allNonEq = allPairsSatisfy (/=)
-
-allCoNonNull :: (Eq a, Semigroup a) => [a] -> Bool
-allCoNonNull = allPairsSatisfy coNonNull
-
-allPairsSatisfy :: (a -> a -> Bool) -> [a] -> Bool
-allPairsSatisfy condition as = all (uncurry condition) (allPairs as)
-
-allPairs :: [a] -> [(a, a)]
-allPairs zs = [(x, y) | (x : ys) <- tails zs, y <- ys]
-
-coNonNull :: (Eq a, Semigroup a) => a -> a -> Bool
-coNonNull a b = (&&)
-    (a /= a <> b)
-    (b /= b <> a)
