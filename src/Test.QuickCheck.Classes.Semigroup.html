@@ -747,7 +747,7 @@ forall a. (Eq a, Group a) =&gt; a -&gt; Property
 forall t. Testable t =&gt; String -&gt; t -&gt; Property
 </span><a href="Test.QuickCheck.Classes.Semigroup.html#makeProperty"><span class="hs-identifier hs-var">makeProperty</span></a></span><span>
 </span><span id="line-348"></span><span>        </span><span class="annot"><span class="annottext">String
-</span><span class="hs-string">&quot;invert (mempty @a) == mempty&quot;</span></span><span>
+</span><span class="hs-string">&quot;invert (mempty @a) == (mempty @a)&quot;</span></span><span>
 </span><span id="line-349"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; a
 forall m. Group m =&gt; m -&gt; m
 </span><span class="hs-identifier hs-var">invert</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Monoid a =&gt; a
